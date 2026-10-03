@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 from werkzeug.security import generate_password_hash,  check_password_hash
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = "golden-crust-secret-key"
@@ -15,6 +16,22 @@ class User(UserMixin):
         self.id = str(id)
         self.username = username
         self.role = role
+
+def role_required(required_role):
+    def decorator(function):
+        @wraps(function)
+        def wrapped_function(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return redirect(url_for("login"))
+
+            if current_user.role != required_role:
+                return "Forbidden", 403
+
+            return function(*args, **kwargs)
+
+        return wrapped_function
+
+    return decorator
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -116,6 +133,16 @@ def login():
 @login_required
 def dashboard():
     return render_template("dashboard.html")
+
+@app.route("/admin")
+@role_required("admin")
+def admin():
+    return "Golden Crust Bakery - Admin Page"
+
+@app.route("/orders")
+@login_required
+def orders():
+    return "Golden Crust Bakery - Orders Page"
 
 @app.route("/logout")
 @login_required
