@@ -96,3 +96,35 @@ The application was tested for:
 
 The goal of this task was to learn how authentication and basic access control work in a Flask application. It also helped me understand password hashing, sessions, protected routes, SQLite databases, and using Git and GitHub to manage a project.
 
+
+
+\## Task 2 - Role-Based Access Control
+
+
+
+I extended the user system to support three roles: admin, staff, and customer. The SQLite users table now includes a role field, and sample accounts were created for testing each role.
+
+
+
+I created a custom role\_required decorator to control access based on the logged-in user's role. The /admin route is restricted to admin users, while non-admin users receive a 403 Forbidden response.
+
+
+
+I also added an /orders route protected with Flask-Login. Any authenticated user can access the orders page, while users who are not logged in are redirected to the login page.
+
+
+
+\### Task 2 Testing
+
+
+
+\- Admin user can access /admin
+
+\- Customer user receives 403 Forbidden when accessing /admin
+
+\- Authenticated customer can access /orders
+
+\- Logged-out user is redirected to login when accessing /orders
+
+\- Admin, staff, and customer accounts can all authenticate successfully
+
