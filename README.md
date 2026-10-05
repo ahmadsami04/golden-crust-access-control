@@ -128,3 +128,55 @@ I also added an /orders route protected with Flask-Login. Any authenticated user
 
 \- Admin, staff, and customer accounts can all authenticate successfully
 
+
+
+\## Task 3 - Broken Access Control Testing
+
+
+
+I tested the /admin route using a Python requests-based test while logged in as a customer.
+
+
+
+\### Vulnerability Identified
+
+
+
+In the vulnerable version, the /admin route only required the user to be logged in and did not verify the user's role. The customer account was therefore able to access /admin by entering the URL directly.
+
+
+
+Before the fix:
+
+
+
+\- Customer login succeeded
+
+\- GET /admin returned HTTP 200
+
+\- Customer could view the admin page
+
+
+
+\### Fix and Verification
+
+
+
+The /admin route is protected with a role check that requires the admin role. I re-ran the same requests-based test after the protection was applied.
+
+
+
+After the fix:
+
+
+
+\- Customer login succeeded
+
+\- GET /admin returned HTTP 403 Forbidden
+
+\- Customer could no longer access the admin page
+
+
+
+The test confirms that authentication alone is not enough for sensitive routes. Authorization must also verify that the authenticated user has the required role.
+
