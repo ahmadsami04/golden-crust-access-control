@@ -330,7 +330,17 @@ Once the application is configured for production and a Heroku account with a su
 
 
 
-Deployment Status: Not yet deployed. The live URL will be added after successful deployment and testing.
+Deployment Status: Successfully deployed on Render Free.
+
+Live Application:https://golden-crust-access-control.onrender.com/login
+
+Hosting: Render Free Web Service
+
+Database: Neon PostgreSQL (persistent cloud database)
+
+Deployment Constraint: The original task specified Heroku deployment. However, Heroku's free tier has been discontinued. Following the project's guidance for using a free functional alternative, Render Free was selected to demonstrate live deployment. The application was successfully deployed using Render and Neon PostgreSQL, and the hosting substitution is documented in the audit report.
+
+Live Verification: Administrator login, administrator-only page access, and logout protection were successfully tested on the deployed application.
 
 
 
