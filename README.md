@@ -180,3 +180,171 @@ After the fix:
 
 The test confirms that authentication alone is not enough for sensitive routes. Authorization must also verify that the authenticated user has the required role.
 
+
+
+Task 4 - Report, Handover, and Live Deployment
+
+
+
+Project Overview
+
+
+
+Golden Crust Bakery's Flask application uses authentication and role-based access control to protect sensitive pages.
+
+
+
+The application supports three roles: admin, staff, and customer.
+
+
+
+\- "/admin" is restricted to administrators.
+
+\- "/orders" is available to authenticated users.
+
+\- Unauthenticated visitors are redirected to the login page when accessing protected routes.
+
+\- Unauthorized customers receive HTTP 403 Forbidden when attempting to access "/admin".
+
+
+
+Local Setup Instructions
+
+
+
+1\. Clone the repository:
+
+&#x20;
+
+&#x20;  "git clone https://github.com/ahmadsami04/golden-crust-access-control.git"
+
+
+
+2\. Navigate to the project directory:
+
+&#x20;
+
+&#x20;  "cd golden-crust-access-control"
+
+
+
+3\. Create a virtual environment:
+
+&#x20;
+
+&#x20;  "python -m venv venv"
+
+
+
+4\. Activate the environment on Windows using Git Bash:
+
+&#x20;
+
+&#x20;  "source venv/Scripts/activate"
+
+
+
+5\. Install dependencies:
+
+&#x20;
+
+&#x20;  "pip install -r requirements.txt"
+
+
+
+6\. Start the application:
+
+&#x20;
+
+&#x20;  "python app.py"
+
+
+
+7\. Open the application in your browser:
+
+&#x20;
+
+&#x20;  "http://127.0.0.1:5000/login"
+
+
+
+Security Testing
+
+
+
+The project includes "test\_access.py", which demonstrates broken access control in an isolated vulnerable test application and verifies that the protected application returns HTTP 403 Forbidden for unauthorized customers.
+
+
+
+To run the tests, start the Flask application in one terminal and run "python test\_access.py" in another terminal.
+
+
+
+Deployment Preparation
+
+
+
+The application will be configured for deployment using a "Procfile", a dependency file named "requirements.txt", and a production WSGI server.
+
+
+
+Before deployment, the following security and configuration changes are required:
+
+
+
+\- Replace the hardcoded Flask secret key with an environment variable.
+
+\- Disable Flask debug mode in production.
+
+\- Configure a production WSGI server such as Gunicorn.
+
+\- Replace demonstration passwords with secure credentials.
+
+\- Configure persistent database storage because Heroku's filesystem is ephemeral.
+
+\- Verify all authentication and authorization routes on the deployed application.
+
+
+
+Heroku Deployment Instructions
+
+
+
+Once the application is configured for production and a Heroku account with a suitable plan is available:
+
+
+
+1\. Install the Heroku CLI and authenticate using "heroku login".
+
+2\. Create the Heroku application using "heroku create".
+
+3\. Configure the required environment variables using "heroku config:set".
+
+4\. Deploy the application using "git push heroku main".
+
+5\. Check deployment logs using "heroku logs --tail".
+
+6\. Open the application using "heroku open".
+
+7\. Test the login page, "/admin", "/orders", and logout functionality.
+
+
+
+Deployment Status: Not yet deployed. The live URL will be added after successful deployment and testing.
+
+
+
+Audit Report
+
+
+
+The security findings, fixes, test results, and future recommendations are documented in "AUDIT\_REPORT.md".
+
+
+
+Project Repository
+
+
+
+https://github.com/ahmadsami04/golden-crust-access-control
+

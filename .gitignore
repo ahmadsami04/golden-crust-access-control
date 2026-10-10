@@ -217,3 +217,13 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 users.db
+# Local Python enviroment
+venv/
+__pycache__/
+*.pyc
+
+# Local secrets
+.env
+.env.*
+users_backup.db
+app_before_db_migration.py.bak

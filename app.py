@@ -1,11 +1,19 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 from werkzeug.security import generate_password_hash,  check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "golden-crust-secret-key"
+app.secret_key = os.environ["SECRET_KEY"]
+DATABASE_PATH = os.environ.get("DATABASE_PATH", "users.db")
+DATABASE_ABSOLUTE_PATH = os.path.abspath(DATABASE_PATH)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL", "sqlite:///" + DATABASE_ABSOLUTE_PATH.replace("\\", "/")
+)
+db = SQLAlchemy(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -16,6 +24,13 @@ class User(UserMixin):
         self.id = str(id)
         self.username = username
         self.role = role
+class UserModel(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), unique=True, nullable=False)
+    password = db.Column(db.Text, nullable=False)
+    role = db.Column(db.String(50), nullable=False, default="customer")
 
 def role_required(required_role):
     def decorator(function):
@@ -33,77 +48,49 @@ def role_required(required_role):
 
     return decorator
 
+
 @login_manager.user_loader
 def load_user(user_id):
-    conn = sqlite3.connect("users.db")
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT id, username, role FROM users WHERE id = ?",
-        (user_id,)
-    )
-    user = cursor.fetchone()
-    conn.close()
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        return None
 
-    if user:
-        return User(user[0], user[1], user[2])
+    user = db.session.get(UserModel, user_id)
+
+    if user is not None:
+        return User(user.id, user.username, user.role)
 
     return None
 
+
+
 def init_db():
-    conn = sqlite3.connect("users.db")
-    cursor = conn.cursor()
+    with app.app_context():
+        db.create_all()
 
-    cursor.execute("""
-       CREATE TABLE IF NOT EXISTS users (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           username TEXT NOT NULL UNIQUE,
-           password TEXT NOT NULL,
-           role TEXT NOT NULL DEFAULT 'customer'
-        )
-    """)
+        if os.environ.get("ENABLE_DEMO_USERS") == "1":
+            sample_users = [
+                ("admin", "bakery123", "admin"),
+                ("staff", "staff123", "staff"),
+                ("customer", "customer123", "customer"),
+            ]
 
-    cursor.execute("PRAGMA table_info(users)")
-    columns = [column[1] for column in
-    cursor.fetchall()]
+            for username, password, role in sample_users:
+                user = UserModel.query.filter_by(
+                    username=username
+                ).first()
 
-    if "role" not in columns:
-        cursor.execute(
-             "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'customer'"
-        )
+                if user is None:
+                    user = UserModel(
+                        username=username,
+                        password=generate_password_hash(password),
+                        role=role,
+                    )
+                    db.session.add(user)
 
-    cursor.execute("SELECT * FROM users WHERE username = ?", ("admin",))
-    user = cursor.fetchone()
+            db.session.commit()
 
-    if user is None:
-        hashed_password = generate_password_hash("bakery123")
-        cursor.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            ("admin", hashed_password)
-        )
-    cursor.execute(
-        "UPDATE users SET role = ? WHERE username = ?",
-        ("admin" , "admin")
-    )
-    sample_users = [
-        ("staff", "staff123", "staff"),
-        ("customer", "customer123", "customer")
-    ]
-     
-    for username, password, role in sample_users:
-         cursor.execute(
-             "SELECT * FROM users WHERE username = ?",
-             (username,)
-         )
-        
-         if cursor.fetchone() is None: 
-             hashed_password = generate_password_hash(password)
-             cursor.execute(
-                 "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                 (username, hashed_password, role)
-             )
-
-    conn.commit()
-    conn.close()
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -111,17 +98,10 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM users WHERE username = ?",
-            (username,)
-        )
-        user = cursor.fetchone()
-        conn.close()
+        user = UserModel.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user[2], password):
-            logged_in_user = User(user[0], user[1], user[3])
+        if user and check_password_hash(user.password, password):
+            logged_in_user = User(user.id, user.username, user.role)
             login_user(logged_in_user)
             return redirect(url_for("dashboard"))
 
@@ -152,4 +132,4 @@ def logout():
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(debug=False)
