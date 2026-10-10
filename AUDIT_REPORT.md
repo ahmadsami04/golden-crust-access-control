@@ -178,4 +178,18 @@ GitHub Repository: https://github.com/ahmadsami04/golden-crust-access-control
 
 
 
-Deployment Status: Pending live deployment and verification.
+Deployment Status: Successfully deployed on Render Free. Live administrator login, protected admin access, and logout verification completed.
+
+
+
+## Deployment Constraints
+
+The original task specified Heroku, but its free hosting tier has been discontinued. Following the project's guidance, Render Free was used as a functional alternative, with Neon PostgreSQL providing persistent database storage.
+
+Live URL: https://golden-crust-access-control.onrender.com/login
+
+Verified: Production administrator login, access to the protected /admin page, and redirection to login after logout.
+
+Limitation: Live non-administrator authorization testing remains incomplete. Render Free may have startup delays after inactivity.
+
+This hosting substitution is documented to explain the difference from the original deployment requirement.
